@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="bulkOnboardApp">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bulk Account Onboarding</title>
+
+  <!-- AngularJS 1.8 -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+
+  <!-- Application scripts -->
+  <script src="js/app.js"></script>
+  <script src="js/onboardingService.js"></script>
+  <script src="js/onboardingController.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body ng-controller="OnboardingController as vm">
+
+  <!-- ═══════════════════════════  HEADER  ══════════════════════════════ -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">BulkOnboard</span>
+      </div>
+      <nav class="header-nav">
+        <a href="#upload-section" class="nav-link">Upload</a>
+        <a href="#history-section" class="nav-link">History</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════  MAIN  ════════════════════════════════ -->
+  <main class="container">
+
+    <!-- ── Hero ───────────────────────────────────────────────────── -->
+    <section class="hero">
+      <h1 class="hero-title">Bulk Account Onboarding</h1>
+      <p class="hero-subtitle">
+        Upload a CSV file to onboard multiple accounts simultaneously.
+        Track progress in real-time with detailed success and failure reporting.
+      </p>
+    </section>
+
+    <!-- ── Upload Card ────────────────────────────────────────────── -->
+    <section id="upload-section" class="card upload-card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <span class="step-badge">1</span> Upload CSV File
+        </h2>
+        <a class="btn btn-outline btn-sm" ng-click="vm.downloadTemplate()">
+          ⬇ Download Template
+        </a>
+      </div>
+
+      <div class="card-body">
+        <!-- Template info -->
+        <div class="template-info">
+          <strong>Required CSV columns:</strong>
+          <code>account_id, account_name, email, phone, account_type, country, currency, credit_limit, status</code>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="drop-zone"
+             ng-class="{'drag-over': vm.isDragging, 'file-selected': vm.selectedFile}"
+             ng-click="vm.triggerFileInput()"
+             ondragover="angular.element(this).scope().vm.onDragOver($event)"
+             ondragleave="angular.element(this).scope().vm.onDragLeave($event)"
+             ondrop="angular.element(this).scope().vm.onDrop($event)">
+          <input type="file"
+                 id="csvFileInput"
+                 accept=".csv"
+                 class="hidden-input"
+                 onchange="angular.element(this).scope().vm.onFileSelected($event)" />
+
+          <div ng-if="!vm.selectedFile" class="drop-zone-empty">
+            <div class="drop-icon">📂</div>
+            <p class="drop-primary">Drag &amp; drop your CSV here</p>
+            <p class="drop-secondary">or click to browse files</p>
+            <p class="drop-limit">Maximum file size: 10 MB</p>
+          </div>
+
+          <div ng-if="vm.selectedFile" class="drop-zone-filled">
+            <div class="file-icon">📄</div>
+            <div class="file-details">
+              <p class="file-name">{{ vm.selectedFile.name }}</p>
+              <p class="file-size">{{ vm.formatFileSize(vm.selectedFile.size) }}</p>
+            </div>
+            <button class="btn-clear" ng-click="vm.clearFile($event)">✕</button>
+          </div>
+        </div>
+
+        <!-- Alert -->
+        <div class="alert alert-error" ng-if="vm.uploadError">
+          <span class="alert-icon">⚠️</span> {{ vm.uploadError }}
+        </div>
+
+        <!-- Upload button -->
+        <div class="upload-actions">
+          <button class="btn btn-primary btn-lg"
+                  ng-click="vm.uploadFile()"
+                  ng-disabled="!vm.selectedFile || vm.uploading">
+            <span ng-if="!vm.uploading">🚀 Start Onboarding</span>
+            <span ng-if="vm.uploading">⏳ Uploading…</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Progress Card ──────────────────────────────────────────── -->
+    <section id="progress-section" class="card progress-card" ng-if="vm.activeJob">
+      <div class="card-header">
+        <h2 class="card-title">
+          <span class="step-badge">2</span> Processing Status
+        </h2>
+        <span class="state-badge" ng-class="vm.stateBadgeClass(vm.activeJob.state)">
+          {{ vm.activeJob.state }}
+        </span>
+      </div>
+
+      <div class="card-body">
+
+        <!-- ── KPI tiles ──────────────────────────────────────────── -->
+        <div class="kpi-grid">
+
+          <div class="kpi-tile kpi-total">
+            <div class="kpi-value">{{ vm.activeJob.totalRecords }}</div>
+            <div class="kpi-label">Total Records</div>
+          </div>
+
+          <div class="kpi-tile kpi-processed">
+            <div class="kpi-value">{{ vm.activeJob.processedCount }}</div>
+            <div class="kpi-label">Processed</div>
+          </div>
+
+          <div class="kpi-tile kpi-success">
+            <div class="kpi-value">{{ vm.activeJob.successCount }}</div>
+            <div class="kpi-label">✅ Successful</div>
+          </div>
+
+          <div class="kpi-tile kpi-failed">
+            <div class="kpi-value">{{ vm.activeJob.failureCount }}</div>
+            <div class="kpi-label">❌ Failed</div>
+          </div>
+
+        </div>
+
+        <!-- ── Progress bar ───────────────────────────────────────── -->
+        <div class="progress-section">
+          <div class="progress-meta">
+            <span>Progress</span>
+            <span>
+              <strong>{{ vm.activeJob.percentageComplete }}%</strong> complete
+              &nbsp;·&nbsp;
+              <strong>{{ vm.activeJob.percentageRemaining }}%</strong> remaining
+            </span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill"
+                 ng-class="vm.progressBarClass(vm.activeJob.state)"
+                 ng-style="{'width': vm.activeJob.percentageComplete + '%'}">
+            </div>
+          </div>
+          <div class="progress-detail">
+            {{ vm.activeJob.processedCount }} / {{ vm.activeJob.totalRecords }} records
+            <span ng-if="vm.activeJob.state === 'PROCESSING'">
+              &nbsp;— processing…
+            </span>
+            <span ng-if="vm.activeJob.state === 'COMPLETED'">
+              &nbsp;— <strong>Completed</strong>
+              <span ng-if="vm.activeJob.completedAt">
+                at {{ vm.formatDate(vm.activeJob.completedAt) }}
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <!-- ── Success rate mini-bar ──────────────────────────────── -->
+        <div class="success-rate-row" ng-if="vm.activeJob.processedCount > 0">
+          <div class="success-rate-label">
+            Success rate:
+            <strong>{{ vm.successRate(vm.activeJob) | number:1 }}%</strong>
+          </div>
+          <div class="success-rate-track">
+            <div class="success-rate-fill"
+                 ng-style="{'width': vm.successRate(vm.activeJob) + '%'}">
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Job metadata ───────────────────────────────────────── -->
+        <div class="job-meta">
+          <span class="meta-item">📁 <strong>File:</strong> {{ vm.activeJob.fileName }}</span>
+          <span class="meta-item">🆔 <strong>Job ID:</strong> <code>{{ vm.activeJob.jobId }}</code></span>
+          <span class="meta-item">🕐 <strong>Started:</strong> {{ vm.formatDate(vm.activeJob.startedAt) }}</span>
+        </div>
+
+        <!-- ── Error message ──────────────────────────────────────── -->
+        <div class="alert alert-error" ng-if="vm.activeJob.errorMessage">
+          <span class="alert-icon">🔥</span> {{ vm.activeJob.errorMessage }}
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Failures Table ─────────────────────────────────────────── -->
+    <section class="card failures-card"
+             ng-if="vm.activeJob && vm.activeJob.failures && vm.activeJob.failures.length > 0">
+      <div class="card-header">
+        <h2 class="card-title">
+          <span class="step-badge step-badge-red">!</span>
+          Failed Accounts
+          <span class="count-badge">{{ vm.activeJob.failures.length }}</span>
+        </h2>
+        <button class="btn btn-outline btn-sm" ng-click="vm.exportFailures()">
+          ⬇ Export Failures
+        </button>
+      </div>
+
+      <div class="card-body no-padding">
+        <div class="table-wrapper">
+          <table class="failures-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Account ID</th>
+                <th>Account Name</th>
+                <th>Email</th>
+                <th>Failure Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="f in vm.activeJob.failures track by $index"
+                  class="failure-row">
+                <td class="row-num">{{ $index + 1 }}</td>
+                <td><code>{{ f.accountId || '—' }}</code></td>
+                <td>{{ f.accountName || '—' }}</td>
+                <td class="email-col">{{ f.email || '—' }}</td>
+                <td>
+                  <span class="reason-tag">{{ f.failureReason }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Job History ────────────────────────────────────────────── -->
+    <section id="history-section" class="card history-card" ng-if="vm.jobHistory.length > 0">
+      <div class="card-header">
+        <h2 class="card-title">📋 Job History</h2>
+        <button class="btn btn-outline btn-sm" ng-click="vm.refreshHistory()">↺ Refresh</button>
+      </div>
+
+      <div class="card-body no-padding">
+        <div class="table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Job ID</th>
+                <th>File</th>
+                <th>Total</th>
+                <th>✅ Success</th>
+                <th>❌ Failed</th>
+                <th>Status</th>
+                <th>Started</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="job in vm.jobHistory track by job.jobId"
+                  ng-class="{'active-row': vm.activeJob && vm.activeJob.jobId === job.jobId}">
+                <td><code class="small-code">{{ job.jobId | limitTo: 8 }}…</code></td>
+                <td>{{ job.fileName }}</td>
+                <td>{{ job.totalRecords }}</td>
+                <td class="success-col">{{ job.successCount }}</td>
+                <td class="failed-col">{{ job.failureCount }}</td>
+                <td>
+                  <span class="state-badge state-badge-sm"
+                        ng-class="vm.stateBadgeClass(job.state)">
+                    {{ job.state }}
+                  </span>
+                </td>
+                <td class="date-col">{{ vm.formatDate(job.startedAt) }}</td>
+                <td>
+                  <button class="btn btn-link btn-sm"
+                          ng-click="vm.viewJob(job.jobId)">View</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════  FOOTER  ══════════════════════════════ -->
+  <footer class="app-footer">
+    <p>BulkOnboard &copy; {{ vm.currentYear }} &nbsp;·&nbsp; Powered by Spring Boot + AngularJS</p>
+  </footer>
+
+</body>
+</html>

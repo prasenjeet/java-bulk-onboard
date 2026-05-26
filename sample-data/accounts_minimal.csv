@@ -1,0 +1,4 @@
+account_id,account_name,email,phone,account_type,country,currency,credit_limit,status
+ACC001,John Doe,john.doe@example.com,+1-555-0100,PERSONAL,US,USD,5000.00,ACTIVE
+ACC002,Jane Smith,jane.smith@example.com,+1-555-0101,BUSINESS,US,USD,25000.00,ACTIVE
+ACC003,Acme Corp,billing@acme.com,+1-555-0202,CORPORATE,CA,CAD,100000.00,ACTIVE

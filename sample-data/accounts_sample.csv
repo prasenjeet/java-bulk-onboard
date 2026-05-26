@@ -1,0 +1,21 @@
+account_id,account_name,email,phone,account_type,country,currency,credit_limit,status
+ACC001,Alice Johnson,alice.johnson@example.com,+1-555-0101,PERSONAL,US,USD,5000.00,ACTIVE
+ACC002,Bob Smith,bob.smith@example.com,+1-555-0102,PERSONAL,US,USD,3000.00,ACTIVE
+ACC003,Acme Corporation,billing@acme.com,+1-555-0200,BUSINESS,US,USD,50000.00,ACTIVE
+ACC004,TechStart Ltd,accounts@techstart.io,+44-20-7946-0958,CORPORATE,GB,GBP,100000.00,ACTIVE
+ACC005,Maria Garcia,maria.garcia@example.com,+34-91-555-0103,PERSONAL,ES,EUR,7500.00,ACTIVE
+ACC006,Tanaka Hiroshi,tanaka.hiroshi@example.jp,+81-3-555-0104,SAVINGS,JP,JPY,0.00,ACTIVE
+ACC007,GlobalTrade Inc,finance@globaltrade.com,+1-555-0205,CORPORATE,CA,CAD,250000.00,ACTIVE
+ACC008,Emma Wilson,emma.wilson@example.co.uk,+44-20-7946-0959,CHECKING,GB,GBP,2000.00,ACTIVE
+ACC009,Liu Wei,liu.wei@example.cn,+86-10-555-0106,PERSONAL,SG,SGD,8000.00,ACTIVE
+ACC010,Fatima Al-Rashid,fatima@example.ae,+971-4-555-0107,BUSINESS,AE,AED,30000.00,ACTIVE
+ACC011,BadRecord One,not-an-email,+1-555-0108,PERSONAL,US,USD,1000.00,ACTIVE
+ACC012,Missing Account Type,valid@example.com,+1-555-0109,,US,USD,1000.00,ACTIVE
+ACC013,Invalid Currency,valid2@example.com,+1-555-0110,PERSONAL,US,BITCOIN,1000.00,ACTIVE
+ACC014,Negative Limit,valid3@example.com,+1-555-0111,PERSONAL,US,USD,-500.00,ACTIVE
+ACC015,Carlos Mendez,carlos.mendez@example.mx,+52-55-555-0112,PERSONAL,MX,USD,4000.00,ACTIVE
+ACC016,Priya Patel,priya.patel@example.in,+91-11-555-0113,SAVINGS,IN,INR,15000.00,ACTIVE
+ACC017,InvalidType Account,valid4@example.com,+1-555-0114,INVALID_TYPE,US,USD,2000.00,ACTIVE
+ACC018,Javier Morales,javier.morales@example.es,+34-93-555-0115,BUSINESS,ES,EUR,20000.00,ACTIVE
+ACC019,Swiss Finance AG,contact@swissfinance.ch,+41-44-555-0116,CORPORATE,CH,CHF,500000.00,ACTIVE
+ACC020,Sophie Dupont,sophie.dupont@example.fr,+33-1-555-0117,PERSONAL,FR,EUR,6000.00,ACTIVE
